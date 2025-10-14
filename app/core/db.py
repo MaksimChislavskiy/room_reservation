@@ -1,0 +1,38 @@
+# Добавляем импорт классов для определения столбца ID.
+from sqlalchemy import Column, Integer
+# Все классы и функции для асинхронной работы
+# находятся в модуле sqlalchemy.ext.asinco.
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
+
+from app.core.config import settings
+
+
+class PreBase:
+
+    @declared_attr
+    def __tablename__(cls):
+        # Именем таблицы будет название модели в нижнем регистре.
+        return cls.__name__.lower()
+    
+    # Во все таблицы будет добавлено поле ID.
+    id = Column(Integer, primary_key=True)
+
+
+# В качестве основы для базогово класса укажем класс PreBase.
+Base = declarative_base(cls=PreBase)
+
+engine = create_async_engine(settings.database_url)
+
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)
+
+
+# Асинхронный генератор сессий.
+async def get_asinc_session():
+    # Через асинхронный контекстный менеджер и sessionmaker
+    # открывается сессия.
+    async with AsyncSessionLocal() as asinc_session:
+        # Генератор с сессией передается в вызывающую функцию.
+        yield asinc_session
+        # Когда HTTP-запрос отработает - выполнгение кода вернется сюда,
+        # и при выходе из контекстного менеджера сессия будет закрыта.
