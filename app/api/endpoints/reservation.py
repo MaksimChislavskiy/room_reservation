@@ -34,10 +34,12 @@ async def create_reservation(
 
 @router.get(
     '/',
-    response_model=list[MeetingRoomDB]
+    response_model=list[ReservationDB]
 )
 async def get_all_reservations(
     session: AsyncSession = Depends(get_asinc_session)
 ):
-    all_rums = await mee
+    reservations = await reservation_crud.get_multi(session)
+    return reservations
     
+
